@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/btcec"
-	"github.com/blocktree/whitecoin-adapter/libs/config"
-	"github.com/blocktree/whitecoin-adapter/libs/types"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/types"
 
 	"github.com/juju/errors"
 )

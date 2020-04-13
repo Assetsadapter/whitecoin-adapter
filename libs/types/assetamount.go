@@ -5,7 +5,7 @@ package types
 import (
 	"math"
 
-	"github.com/blocktree/whitecoin-adapter/libs/util"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
 	"github.com/juju/errors"
 )
 

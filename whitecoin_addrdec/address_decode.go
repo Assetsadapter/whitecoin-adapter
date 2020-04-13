@@ -1,7 +1,7 @@
 package whitecoin_addrdec
 
 import (
-	"github.com/blocktree/go-owaddress"
+	"github.com/Assetsadapter/go-owaddress"
 	"github.com/blocktree/go-owcdrivers/addressEncoder"
 	"github.com/blocktree/go-owcrypt"
 	"github.com/blocktree/openwallet/openwallet"

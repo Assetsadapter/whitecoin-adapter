@@ -19,15 +19,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/operations"
+	whitecoin_txsigner "github.com/Assetsadapter/whitecoin-adapter/whitecoin-txsigner"
 	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/whitecoin-adapter/libs/operations"
-	whitecoin_txsigner "github.com/blocktree/whitecoin-adapter/whitecoin-txsigner"
 	"time"
 
-	"github.com/blocktree/whitecoin-adapter/libs/config"
-	"github.com/blocktree/whitecoin-adapter/libs/crypto"
-	bt "github.com/blocktree/whitecoin-adapter/libs/types"
-	"github.com/blocktree/whitecoin-adapter/types"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/crypto"
+	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 
 	owcrypt "github.com/blocktree/go-owcrypt"
 	"github.com/blocktree/openwallet/openwallet"
@@ -82,7 +82,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 	}
 
 	for _, addr := range addresses {
-		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address, assetID)
+		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address)
 		if err != nil {
 			return err
 		}
@@ -381,7 +381,7 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 	}
 
 	for _, addr := range addresses {
-		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address, assetID)
+		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address)
 		if err != nil {
 			return nil, err
 		}
@@ -553,7 +553,6 @@ func (decoder *TransactionDecoder) createRawTransaction(
 		Nonce:   "",
 		Address: from,
 		Message: hex.EncodeToString(digest),
-		RSV:     true,
 	}
 	keySignList = append(keySignList, &signature)
 

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
-	bt "github.com/blocktree/whitecoin-adapter/libs/types"
-	"github.com/blocktree/whitecoin-adapter/whitecoin_addrdec"
+	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
+	"github.com/Assetsadapter/whitecoin-adapter/whitecoin_addrdec"
 )
 
 type WalletManager struct {

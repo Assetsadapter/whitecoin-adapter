@@ -2,7 +2,7 @@ package whitecoin_addrdec
 
 import (
 	"encoding/hex"
-	"github.com/blocktree/go-owcrypt"
+	"github.com/Assetsadapter/go-owcrypt"
 	"testing"
 )
 

@@ -1,4 +1,4 @@
-module github.com/blocktree/whitecoin-adapter
+module github.com/Assetsadapter/whitecoin-adapter
 
 go 1.12
 

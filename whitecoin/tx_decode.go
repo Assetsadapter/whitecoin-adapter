@@ -322,21 +322,20 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransaction(wrapper openwalle
 }
 
 //CreateSummaryRawTransactionWithError 创建汇总交易
-func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper openwallet.WalletDAI, sumRawTx *openwallet.SummaryRawTransaction) ([]*openwallet.RawTransactionWithError, error) {
+func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(
+	wrapper openwallet.WalletDAI,
+	sumRawTx *openwallet.SummaryRawTransaction,
+) ([]*openwallet.RawTransactionWithError, error) {
 
 	var (
 		rawTxArray = make([]*openwallet.RawTransactionWithError, 0)
 		accountID  = sumRawTx.Account.AccountID
 		assetID    types.ObjectID
-		precise    uint64
+		precise    int32
 	)
 
-	if !sumRawTx.Coin.IsContract {
-		return nil, openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "only support contract")
-	}
-
-	assetID = types.MustParseObjectID(sumRawTx.Coin.Contract.Address)
-	precise = sumRawTx.Coin.Contract.Decimals
+	assetID = types.MustParseObjectID("1.3.0")
+	precise = decoder.wm.Decimal()
 
 	minTransfer, _ := decimal.NewFromString(sumRawTx.MinTransfer)
 	retainedBalance, _ := decimal.NewFromString(sumRawTx.RetainedBalance)
@@ -525,6 +524,8 @@ func (decoder *TransactionDecoder) createRawTransaction(
 
 	feesDec := decimal.New(decoder.wm.Config.FixFees, 0)
 	feesDec = feesDec.Shift(-decoder.wm.Decimal())
+
+	accountTotalSent = accountTotalSent.Shift(-decoder.wm.Decimal())
 
 	jsonTx, _ := tx.MarshalJSON()
 	rawTx.RawHex = hex.EncodeToString(jsonTx)

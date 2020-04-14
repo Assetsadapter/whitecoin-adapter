@@ -3,9 +3,9 @@ package crypto
 import (
 	"time"
 
-	"github.com/btcsuite/btcd/btcec"
 	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
 	"github.com/Assetsadapter/whitecoin-adapter/libs/types"
+	"github.com/btcsuite/btcd/btcec"
 
 	"github.com/juju/errors"
 )

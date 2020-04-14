@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/blocktree/whitecoin-adapter/encoding"
+	"github.com/Assetsadapter/whitecoin-adapter/encoding"
 	"github.com/pkg/errors"
 )
 

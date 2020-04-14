@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/blocktree/whitecoin-adapter/libs/types"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/types"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 )
 

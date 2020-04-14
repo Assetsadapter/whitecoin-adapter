@@ -18,10 +18,10 @@ package whitecoin
 import (
 	"errors"
 	"fmt"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 	"github.com/blocktree/openwallet/common"
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
-	"github.com/blocktree/whitecoin-adapter/types"
 	"math/big"
 	"time"
 )
@@ -136,16 +136,16 @@ func (bs *XWCBlockScanner) ScanBlockTask() {
 		}
 
 		if currentHash != block.Previous {
+			previousHeight := currentHeight - 1
 			bs.wm.Log.Std.Info("block has been fork on height: %d.", currentHeight)
 			bs.wm.Log.Std.Info("block height: %d local hash = %s ", currentHeight-1, currentHash)
 			bs.wm.Log.Std.Info("block height: %d mainnet hash = %s ", currentHeight-1, block.Previous)
-			bs.wm.Log.Std.Info("delete recharge records on block height: %d.", currentHeight-1)
 
 			// get local fork bolck
-			forkBlock, _ := bs.GetLocalBlock(currentHeight - 1)
+			forkBlock, _ := bs.GetLocalBlock(previousHeight)
 			// delete last unscan block
-			bs.DeleteUnscanRecord(currentHeight - 1)
-			currentHeight = currentHeight - 2 // scan back to last 2 block
+			bs.DeleteUnscanRecord(previousHeight)
+			currentHeight = previousHeight - 1 // scan back to last 2 block
 			if currentHeight <= 0 {
 				currentHeight = 1
 			}

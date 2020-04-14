@@ -17,7 +17,6 @@ package whitecoin
 
 import (
 	"github.com/blocktree/openwallet/openwallet"
-	"github.com/blocktree/whitecoin-adapter/types"
 	"github.com/shopspring/decimal"
 )
 
@@ -36,14 +35,11 @@ func NewContractDecoder(wm *WalletManager) *ContractDecoder {
 // GetTokenBalanceByAddress return the balance by account alias, queried by rpc
 func (decoder *ContractDecoder) GetTokenBalanceByAddress(contract openwallet.SmartContract, address ...string) ([]*openwallet.TokenBalance, error) {
 
-	var (
-		asset = types.MustParseObjectID(contract.Address)
-	)
 	tokenBalanceList := make([]*openwallet.TokenBalance, 0)
 
 	for _, addr := range address {
 
-		balance, err := decoder.wm.Api.GetAddrBalance(addr, asset)
+		balance, err := decoder.wm.Api.GetAddrBalance(addr)
 		if err != nil {
 			decoder.wm.Log.Errorf("get account[%v] token balance failed, err: %v", addr, err)
 		}

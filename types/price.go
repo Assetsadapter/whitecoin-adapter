@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/blocktree/whitecoin-adapter/encoding"
+	"github.com/Assetsadapter/whitecoin-adapter/encoding"
 )
 
 type Price struct {

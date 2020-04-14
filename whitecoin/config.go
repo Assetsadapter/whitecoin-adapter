@@ -43,8 +43,10 @@ type WalletConfig struct {
 	BlockchainFile string
 	//本地数据库文件路径
 	dbPath string
-	//钱包服务API
+	// 节点服务API
 	ServerAPI string
+	// 钱包服务PAI
+	WalletAPI string
 	//默认配置内容
 	DefaultConfig string
 	//曲线类型

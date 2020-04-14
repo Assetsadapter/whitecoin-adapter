@@ -4,15 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Assetsadapter/whitecoin-adapter/types"
-	"io/ioutil"
-	"net/http"
-	"strings"
-
-	"github.com/blocktree/openwallet/log"
 	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
+	"github.com/blocktree/openwallet/log"
 	"github.com/imroc/req"
 	"github.com/tidwall/gjson"
+	"io/ioutil"
+	"net/http"
 )
 
 // WalletClient is a Bitshares RPC client. It performs RPCs over HTTP using JSON
@@ -27,8 +25,6 @@ type WalletClient struct {
 // NewWalletClient init a rpc client
 func NewWalletClient(serverAPI, walletAPI string, debug bool) *WalletClient {
 
-	walletAPI = strings.TrimSuffix(walletAPI, "/")
-	serverAPI = strings.TrimSuffix(serverAPI, "/")
 	c := WalletClient{
 		WalletAPI: walletAPI,
 		ServerAPI: serverAPI,
@@ -53,9 +49,7 @@ func (c *WalletClient) call(method string, request interface{}, queryWalletAPI b
 	}
 
 	authHeader := req.Header{
-		"Accept":       "application/json",
 		"Content-Type": "application/json",
-		"Connection":   "close",
 	}
 
 	//json-rpc
@@ -108,6 +102,9 @@ func (c *WalletClient) isError(r *req.Resp) error {
 	}
 
 	result := gjson.ParseBytes(r.Bytes())
+	if !result.Get("result").Exists() {
+		return fmt.Errorf("response is nil!")
+	}
 
 	if result.Get("error").IsObject() {
 
@@ -148,7 +145,7 @@ func (c *WalletClient) GetBlockchainInfo() (*BlockchainInfo, error) {
 
 // GetBlockByHeight returns a certain block
 func (c *WalletClient) GetBlockByHeight(height uint32) (*Block, error) {
-	r, err := c.call("get_block", []interface{}{height}, false)
+	r, err := c.call("get_block", []interface{}{height}, true)
 	if err != nil {
 		return nil, err
 	}

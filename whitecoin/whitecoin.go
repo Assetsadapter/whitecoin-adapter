@@ -19,7 +19,7 @@ import (
 	"github.com/astaxie/beego/config"
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
-	xwc "github.com/blocktree/whitecoin-adapter/libs/config"
+	xwc "github.com/Assetsadapter/whitecoin-adapter/libs/config"
 	"github.com/shopspring/decimal"
 )
 
@@ -67,10 +67,11 @@ func (wm *WalletManager) GetBlockScanner() openwallet.BlockScanner {
 func (wm *WalletManager) LoadAssetsConfig(c config.Configer) error {
 
 	wm.Config.ServerAPI = c.String("serverAPI")
+	wm.Config.WalletAPI = c.String("walletAPI")
 	wm.Config.ChainID = c.String("ChainID")
 	wm.Config.FixFees, _ = c.Int64("FixFees")
 	wm.Config.Decimal = 8
-	wm.Api = NewWalletClient(wm.Config.ServerAPI, wm.Config.ServerAPI, false)
+	wm.Api = NewWalletClient(wm.Config.ServerAPI, wm.Config.WalletAPI, false)
 	wm.Config.DataDir = c.String("dataDir")
 
 	//数据文件夹

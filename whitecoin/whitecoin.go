@@ -16,10 +16,10 @@
 package whitecoin
 
 import (
+	xwc "github.com/Assetsadapter/whitecoin-adapter/libs/config"
 	"github.com/astaxie/beego/config"
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
-	xwc "github.com/Assetsadapter/whitecoin-adapter/libs/config"
 	"github.com/shopspring/decimal"
 )
 
@@ -70,7 +70,7 @@ func (wm *WalletManager) LoadAssetsConfig(c config.Configer) error {
 	wm.Config.WalletAPI = c.String("walletAPI")
 	wm.Config.ChainID = c.String("ChainID")
 	wm.Config.FixFees, _ = c.Int64("FixFees")
-	wm.Config.Decimal = 8
+	wm.Config.Decimal = Decimal
 	wm.Api = NewWalletClient(wm.Config.ServerAPI, wm.Config.WalletAPI, false)
 	wm.Config.DataDir = c.String("dataDir")
 
@@ -111,13 +111,15 @@ func (wm *WalletManager) GetAddressDecoderV2() openwallet.AddressDecoderV2 {
 	return wm.DecoderV2
 }
 
-func ConvertAmountToFloatDecimal(amount string, decimals int) (decimal.Decimal, error) {
+func ConvertAmountToFloatDecimal(amount string, decimals int32) (decimal.Decimal, error) {
 	d, err := decimal.NewFromString(amount)
 	if err != nil {
 		log.Error("convert string to deciaml failed, err=", err)
 		return d, err
 	}
+	return ConvertFloatDecimal(d, int32(decimals)), nil
+}
 
-	damount := d.Shift(-int32(decimals))
-	return damount, nil
+func ConvertFloatDecimal(value decimal.Decimal, decimals int32) decimal.Decimal {
+	return value.Shift(-int32(decimals))
 }

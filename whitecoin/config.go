@@ -24,6 +24,7 @@ import (
 )
 
 const (
+	Decimal   = 8
 	CurveType = owcrypt.ECC_CURVE_SECP256K1
 )
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/shopspring/decimal"
 	"strconv"
 
 	"github.com/Assetsadapter/whitecoin-adapter/encoding"
@@ -13,8 +14,9 @@ type Price struct {
 }
 
 type AssetAmount struct {
-	Amount  uint64   `json:"amount"`
-	AssetID ObjectID `json:"asset_id"`
+	Amount      uint64   `json:"amount"`
+	AssetID     ObjectID `json:"asset_id"`
+	AmountFloat decimal.Decimal
 }
 
 func (aa AssetAmount) Marshal(encoder *encoding.Encoder) error {

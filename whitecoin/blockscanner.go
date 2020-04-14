@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Assetsadapter/whitecoin-adapter/types"
-	"github.com/blocktree/openwallet/common"
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
 	"math/big"
@@ -132,6 +131,11 @@ func (bs *XWCBlockScanner) ScanBlockTask() {
 
 		if err != nil {
 			bs.wm.Log.Std.Info("block scanner can not get new block data by rpc; unexpected error: %v", err)
+			break
+		}
+
+		if block == nil {
+			bs.wm.Log.Std.Error("block scanner get new block is nil")
 			break
 		}
 
@@ -343,18 +347,6 @@ func (bs *XWCBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 		if transferOperation, ok := operation.(*types.TransferOperation); ok {
 
-			//txID := transaction.TransactionID
-			//if len(txID) == 0 {
-			//	txID, err := bs.wm.Api.GetTransactionID(transaction)
-			//	bs.wm.Log.Std.Debug("tx: %v", txID)
-			//
-			//	if err != nil || len(txID) == 0 {
-			//		bs.wm.Log.Std.Error("cannot get txid, block: %v %s \n%v", blockHeight, transaction.Signatures, err)
-			//		return ExtractResult{Success: false}
-			//	}
-			//}
-			//result.TxID = txID
-
 			if scanTargetFunc == nil {
 				bs.wm.Log.Std.Error("scanTargetFunc is not configurated")
 				return ExtractResult{Success: false}
@@ -400,21 +392,20 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 	reason := ""
 
 	token := operation.Amount.AssetID.String()
-	amount := common.NewString(operation.Amount.Amount).String()
 
 	contractID := openwallet.GenContractID(bs.wm.Symbol(), token)
 	coin := openwallet.Coin{
 		Symbol:     bs.wm.Symbol(),
-		IsContract: true,
+		IsContract: false,
 		ContractID: contractID,
 	}
 
-	coin.Contract = openwallet.SmartContract{
-		Symbol:     bs.wm.Symbol(),
-		ContractID: contractID,
-		Address:    token,
-		Token:      token,
-	}
+	//coin.Contract = openwallet.SmartContract{
+	//	Symbol:     bs.wm.Symbol(),
+	//	ContractID: contractID,
+	//	Address:    token,
+	//	Token:      token,
+	//}
 
 	from := operation.FromAddr
 	to := operation.ToAddr
@@ -425,18 +416,16 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 		BlockHash:   result.BlockHash,
 		BlockHeight: result.BlockHeight,
 		TxID:        result.TxID,
-		// Decimal:     0,
-		Amount:      amount,
+		Decimal:     bs.wm.Decimal(),
+		Amount:      operation.Amount.AmountFloat.String(),
 		ConfirmTime: result.BlockTime,
-		From:        []string{from + ":" + amount},
-		To:          []string{to + ":" + amount},
+		From:        []string{from + ":" + operation.Amount.AmountFloat.String()},
+		To:          []string{to + ":" + operation.Amount.AmountFloat.String()},
 		IsMemo:      true,
 		Status:      status,
 		Reason:      reason,
 		TxType:      0,
 	}
-
-	//transx.SetExtParam("memo", operation.Memo)
 
 	wxID := openwallet.GenTransactionWxID(transx)
 	transx.WxID = wxID
@@ -452,8 +441,6 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 	}
 
 	txExtractDataArray = append(txExtractDataArray, txExtractData)
-
-	fee := common.NewString(operation.Fee.Amount).String()
 	feeToken := operation.Fee.AssetID.String()
 
 	if operation.Fee.AssetID != operation.Amount.AssetID && optType != 2 {
@@ -478,10 +465,10 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 			BlockHash:   result.BlockHash,
 			BlockHeight: result.BlockHeight,
 			TxID:        result.TxID,
-			// Decimal:     0,
-			Amount:      fee,
+			Decimal:     bs.wm.Decimal(),
+			Amount:      operation.Fee.AmountFloat.String(),
 			ConfirmTime: result.BlockTime,
-			From:        []string{from + ":" + fee},
+			From:        []string{from + ":" + operation.Fee.AmountFloat.String()},
 			IsMemo:      true,
 			Status:      status,
 			Reason:      reason,
@@ -496,7 +483,7 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 
 		txExtractDataArray = append(txExtractDataArray, feeExtractData)
 	} else if operation.Fee.AssetID == operation.Amount.AssetID {
-		transx.Fees = fee
+		transx.Fees = operation.Fee.AmountFloat.String()
 	}
 
 	result.extractData[sourceKey] = txExtractDataArray

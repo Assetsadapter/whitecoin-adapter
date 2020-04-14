@@ -243,7 +243,7 @@ func (c *WalletClient) GetAccounts(names_or_ids ...string) ([]*types.Account, er
 func (c *WalletClient) BroadcastTransaction(tx *bt.SignedTransaction) (string, error) {
 	//resp := BroadcastResponse{}
 
-	r, err := c.call("lightwallet_broadcast", []interface{}{tx}, false)
+	r, err := c.call("lightwallet_broadcast", []interface{}{tx}, true)
 	if err != nil {
 		return "", err
 	}

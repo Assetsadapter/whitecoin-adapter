@@ -718,7 +718,9 @@ func (this *XWCBlockScanner) GetBalanceByAddress(address ...string) ([]*openwall
 			Address: addr.Address,
 		}
 
-		balance.Balance = b.Amount
+		amount, _ := ConvertAmountToFloatDecimal(b.Amount, Decimal)
+
+		balance.Balance = amount.String()
 		balance.UnconfirmBalance = "0"
 		balance.ConfirmBalance = "0"
 		addr.Balance = balance

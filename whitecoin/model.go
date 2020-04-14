@@ -217,8 +217,7 @@ type Balance struct {
 
 func NewBalance(result gjson.Result) *Balance {
 	obj := Balance{}
-	amount, _ := ConvertAmountToFloatDecimal(result.Get("amount").String(), Decimal)
-	obj.Amount = amount.String()
+	obj.Amount = result.Get("amount").String()
 	obj.AssetID = types.MustParseObjectID(result.Get("asset_id").String())
 	return &obj
 }

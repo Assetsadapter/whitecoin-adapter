@@ -55,15 +55,11 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 		amountStr string
 		to        string
 		assetID   types.ObjectID
-		precise   uint64
+		precise   int32
 	)
 
-	if !rawTx.Coin.IsContract {
-		return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "only support contract")
-	}
-
-	assetID = types.MustParseObjectID(rawTx.Coin.Contract.Address)
-	precise = rawTx.Coin.Contract.Decimals
+	assetID = types.MustParseObjectID("1.3.0")
+	precise = decoder.wm.Decimal()
 
 	//获取wallet
 	addresses, err := wrapper.GetAddressList(0, -1, "AccountID", accountID) //wrapper.GetWallet().GetAddressesByAccount(rawTx.Account.AccountID)
@@ -89,9 +85,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 
 		accountBalanceDec, _ := decimal.NewFromString(balance.Amount)
 		amountDec, _ := decimal.NewFromString(amountStr)
-		amountDec = amountDec.Shift(int32(precise))
-
-		//memo := rawTx.GetExtParam().Get("memo").String()
+		amountDec = amountDec.Shift(precise)
 
 		asset := bt.AssetIDFromObject(bt.NewAssetID(assetID.String()))
 		amount := bt.AssetAmount{
@@ -130,25 +124,6 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 		if err := ops.ApplyFees(fees); err != nil {
 			return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "ApplyFees")
 		}
-
-		//fromPublicKey, _ := bt.NewPublicKeyFromString(fromAccount.Options.MemoKey)
-		//toPublicKey, _ := bt.NewPublicKeyFromString(toAccount.Options.MemoKey)
-
-		//if memo != "" {
-		//	m := bt.Memo{
-		//		From:  *fromPublicKey,
-		//		To:    *toPublicKey,
-		//		Nonce: bt.UInt64(rand.Uint64()),
-		//	}
-		//	keyBag := crypto.NewKeyBag()
-		//	keyBag.Add(decoder.wm.Config.MemoPrivateKey)
-		//
-		//	if err := keyBag.EncryptMemo(&m, memo); err != nil {
-		//		return fmt.Errorf("EncryptMemo: %v", err)
-		//	}
-		//
-		//	op.Memo = &m
-		//}
 
 		createTxErr := decoder.createRawTransaction(
 			wrapper,
@@ -452,25 +427,6 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 			Required: 1,
 		}
 
-		//fromPublicKey, _ := bt.NewPublicKeyFromString(fromAccount.Options.MemoKey)
-		//toPublicKey, _ := bt.NewPublicKeyFromString(toAccount.Options.MemoKey)
-
-		//if memo != "" {
-		//	m := bt.Memo{
-		//		From:  *fromPublicKey,
-		//		To:    *toPublicKey,
-		//		Nonce: bt.UInt64(rand.Uint64()),
-		//	}
-		//	keyBag := crypto.NewKeyBag()
-		//	keyBag.Add(decoder.wm.Config.MemoPrivateKey)
-		//
-		//	if err := keyBag.EncryptMemo(&m, memo); err != nil {
-		//		return nil, fmt.Errorf("EncryptMemo: %v", err)
-		//	}
-		//
-		//	op.Memo = &m
-		//}
-
 		createTxErr := decoder.createRawTransaction(
 			wrapper,
 			rawTx,
@@ -507,9 +463,7 @@ func (decoder *TransactionDecoder) createRawTransaction(
 		keySignList      = make([]*openwallet.KeySignature, 0)
 		amountDec        = decimal.Zero
 		curveType        = decoder.wm.Config.CurveType
-		//assetID          = bt.NewAssetID(rawTx.Coin.Contract.Address)
-		//precise          = rawTx.Coin.Contract.Decimals
-		operations = ops
+		operations       = ops
 	)
 
 	for k, v := range rawTx.To {

@@ -125,11 +125,12 @@ func NewBlock(height uint32, result *gjson.Result) *Block {
 	obj.Height = uint64(height)
 	for _, trans := range obj.Transactions {
 		for _, opt := range trans.Operations {
-			txOpt := opt.(*types.TransferOperation)
-			amountDecimal, _ := ConvertAmountToFloatDecimal(common.NewString(txOpt.Amount.Amount).String(), Decimal)
-			txOpt.Amount.AmountFloat = amountDecimal
-			feeDecimal, _ := ConvertAmountToFloatDecimal(common.NewString(txOpt.Fee.Amount).String(), Decimal)
-			txOpt.Fee.AmountFloat = feeDecimal
+			if txOpt, ok := opt.(*types.TransferOperation); ok {
+				amountDecimal, _ := ConvertAmountToFloatDecimal(common.NewString(txOpt.Amount.Amount).String(), Decimal)
+				txOpt.Amount.AmountFloat = amountDecimal
+				feeDecimal, _ := ConvertAmountToFloatDecimal(common.NewString(txOpt.Fee.Amount).String(), Decimal)
+				txOpt.Fee.AmountFloat = feeDecimal
+			}
 		}
 	}
 	return &obj

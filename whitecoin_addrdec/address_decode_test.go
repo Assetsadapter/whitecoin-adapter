@@ -2,7 +2,7 @@ package whitecoin_addrdec
 
 import (
 	"encoding/hex"
-	"github.com/Assetsadapter/go-owcrypt"
+	"github.com/blocktree/go-owcrypt"
 	"testing"
 )
 
@@ -27,7 +27,6 @@ func TestAddressDecoder_PubKeyEncode(t *testing.T) {
 	t.Logf("p2pkAddr2: %s", p2pkAddr2)
 	//XWCNenZ8kD5AHghHhYRB3PWTABZjGFHTVGG4C
 }
-
 
 func TestAddressDecoder_AddressDecode(t *testing.T) {
 

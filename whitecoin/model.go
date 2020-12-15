@@ -20,14 +20,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/blocktree/openwallet/common"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/Assetsadapter/whitecoin-adapter/encoding"
-	"github.com/Assetsadapter/whitecoin-adapter/types"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/openwallet"
+	"github.com/blocktree/whitecoin-adapter/encoding"
+	"github.com/blocktree/whitecoin-adapter/types"
 	"github.com/tidwall/gjson"
 )
 
@@ -121,18 +120,32 @@ type Block struct {
 
 func NewBlock(height uint32, result *gjson.Result) *Block {
 	obj := Block{}
+	//obj.Height = result.Get("number").Uint()
+	//obj.BlockID = result.Get("block_id").String()
+	//obj.TransactionMerkleRoot = result.Get("transaction_merkle_root").String()
+	//obj.Previous = result.Get("previous").String()
+	//timestamp, _ := time.ParseInLocation(TimeLayout, result.Get("timestamp").String(), time.UTC)
+	//obj.Timestamp = types.Time{&timestamp}
+	//obj.Witness = result.Get("witness").String()
+	//obj.WitnessSignature = result.Get("witness_signature").String()
+	//
+	//obj.Transactions = make([]*types.Transaction, 0)
+	//if result.Get("transactions").IsArray() && result.Get("transaction_ids").IsArray() {
+	//	ids := result.Get("transaction_ids").Array()
+	//	for i, txRaw := range result.Get("transactions").Array() {
+	//		txid := ids[i].String()
+	//		tx, _ := NewTransaction(&txRaw, txid)
+	//		//if err != nil {
+	//		//	log.Errorf("NewTransaction error: %v", err)
+	//		//} else {
+	//		//	obj.Transactions = append(obj.Transactions, tx)
+	//		//}
+	//		obj.Transactions = append(obj.Transactions, tx)
+	//	}
+	//}
+
 	json.Unmarshal([]byte(result.Raw), &obj)
 	obj.Height = uint64(height)
-	for _, trans := range obj.Transactions {
-		for _, opt := range trans.Operations {
-			if txOpt, ok := opt.(*types.TransferOperation); ok {
-				amountDecimal, _ := ConvertAmountToFloatDecimal(common.NewString(txOpt.Amount.Amount).String(), Decimal)
-				txOpt.Amount.AmountFloat = amountDecimal
-				feeDecimal, _ := ConvertAmountToFloatDecimal(common.NewString(txOpt.Fee.Amount).String(), Decimal)
-				txOpt.Fee.AmountFloat = feeDecimal
-			}
-		}
-	}
 	return &obj
 }
 

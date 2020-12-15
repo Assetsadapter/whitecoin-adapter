@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
-	"github.com/Assetsadapter/whitecoin-adapter/types"
-	"github.com/blocktree/openwallet/log"
-	"github.com/imroc/req"
-	"github.com/tidwall/gjson"
+	"github.com/blocktree/whitecoin-adapter/types"
 	"io/ioutil"
 	"net/http"
+	"strings"
+
+	"github.com/blocktree/openwallet/v2/log"
+	bt "github.com/blocktree/whitecoin-adapter/libs/types"
+	"github.com/imroc/req"
+	"github.com/tidwall/gjson"
 )
 
 // WalletClient is a Bitshares RPC client. It performs RPCs over HTTP using JSON
@@ -25,6 +27,8 @@ type WalletClient struct {
 // NewWalletClient init a rpc client
 func NewWalletClient(serverAPI, walletAPI string, debug bool) *WalletClient {
 
+	walletAPI = strings.TrimSuffix(walletAPI, "/")
+	serverAPI = strings.TrimSuffix(serverAPI, "/")
 	c := WalletClient{
 		WalletAPI: walletAPI,
 		ServerAPI: serverAPI,
@@ -49,7 +53,9 @@ func (c *WalletClient) call(method string, request interface{}, queryWalletAPI b
 	}
 
 	authHeader := req.Header{
+		"Accept":       "application/json",
 		"Content-Type": "application/json",
+		"Connection":   "close",
 	}
 
 	//json-rpc
@@ -102,9 +108,6 @@ func (c *WalletClient) isError(r *req.Resp) error {
 	}
 
 	result := gjson.ParseBytes(r.Bytes())
-	if !result.Get("result").Exists() {
-		return fmt.Errorf("response is nil!")
-	}
 
 	if result.Get("error").IsObject() {
 
@@ -145,7 +148,7 @@ func (c *WalletClient) GetBlockchainInfo() (*BlockchainInfo, error) {
 
 // GetBlockByHeight returns a certain block
 func (c *WalletClient) GetBlockByHeight(height uint32) (*Block, error) {
-	r, err := c.call("get_block", []interface{}{height}, true)
+	r, err := c.call("get_block", []interface{}{height}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -163,21 +166,26 @@ func (c *WalletClient) GetTransaction(txid string) (*types.Transaction, error) {
 }
 
 // GetAddrBalance Returns information about the given account.
-func (c *WalletClient) GetAddrBalance(addr string) (*Balance, error) {
+func (c *WalletClient) GetAddrBalance(addr string, asset types.ObjectID) (*Balance, error) {
 
 	balance := &Balance{
-		Amount: "0",
+		AssetID: asset,
+		Amount:  "0",
 	}
 
 	//var resp []*types.Account
-	r, err := c.call("get_addr_balances", []interface{}{addr}, false)
+	r, err := c.call("get_addr_balances", []interface{}{addr, []interface{}{asset.String()}}, false)
 	if err != nil {
 		return balance, nil
 	}
 
 	if r.IsArray() {
 		for _, item := range r.Array() {
-			return NewBalance(item), nil
+			b := NewBalance(item)
+			if b.AssetID.String() == asset.String() {
+				return b, nil
+			}
+
 		}
 	}
 
@@ -243,7 +251,7 @@ func (c *WalletClient) GetAccounts(names_or_ids ...string) ([]*types.Account, er
 func (c *WalletClient) BroadcastTransaction(tx *bt.SignedTransaction) (string, error) {
 	//resp := BroadcastResponse{}
 
-	r, err := c.call("lightwallet_broadcast", []interface{}{tx}, true)
+	r, err := c.call("lightwallet_broadcast", []interface{}{tx}, false)
 	if err != nil {
 		return "", err
 	}

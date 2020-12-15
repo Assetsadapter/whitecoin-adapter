@@ -16,11 +16,10 @@
 package whitecoin
 
 import (
-	xwc "github.com/Assetsadapter/whitecoin-adapter/libs/config"
 	"github.com/astaxie/beego/config"
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openwallet"
-	"github.com/shopspring/decimal"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openwallet"
+	xwc "github.com/blocktree/whitecoin-adapter/libs/config"
 )
 
 //CurveType 曲线类型
@@ -40,7 +39,7 @@ func (wm *WalletManager) Symbol() string {
 
 //Decimal 小数位精度
 func (wm *WalletManager) Decimal() int32 {
-	return wm.Config.Decimal
+	return 8
 }
 
 //BalanceModelType 余额模型类型
@@ -67,11 +66,9 @@ func (wm *WalletManager) GetBlockScanner() openwallet.BlockScanner {
 func (wm *WalletManager) LoadAssetsConfig(c config.Configer) error {
 
 	wm.Config.ServerAPI = c.String("serverAPI")
-	wm.Config.WalletAPI = c.String("walletAPI")
 	wm.Config.ChainID = c.String("ChainID")
 	wm.Config.FixFees, _ = c.Int64("FixFees")
-	wm.Config.Decimal = Decimal
-	wm.Api = NewWalletClient(wm.Config.ServerAPI, wm.Config.WalletAPI, false)
+	wm.Api = NewWalletClient(wm.Config.ServerAPI, wm.Config.ServerAPI, false)
 	wm.Config.DataDir = c.String("dataDir")
 
 	//数据文件夹
@@ -109,17 +106,4 @@ func (wm *WalletManager) GetSmartContractDecoder() openwallet.SmartContractDecod
 //如果实现了AddressDecoderV2，就无需实现AddressDecoder
 func (wm *WalletManager) GetAddressDecoderV2() openwallet.AddressDecoderV2 {
 	return wm.DecoderV2
-}
-
-func ConvertAmountToFloatDecimal(amount string, decimals int32) (decimal.Decimal, error) {
-	d, err := decimal.NewFromString(amount)
-	if err != nil {
-		log.Error("convert string to deciaml failed, err=", err)
-		return d, err
-	}
-	return ConvertFloatDecimal(d, int32(decimals)), nil
-}
-
-func ConvertFloatDecimal(value decimal.Decimal, decimals int32) decimal.Decimal {
-	return value.Shift(-int32(decimals))
 }

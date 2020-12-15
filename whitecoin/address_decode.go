@@ -16,7 +16,7 @@
 package whitecoin
 
 import (
-	"github.com/Assetsadapter/whitecoin-adapter/whitecoin_addrdec"
+	"github.com/blocktree/whitecoin-adapter/whitecoin_addrdec"
 )
 
 type addressDecoder struct {

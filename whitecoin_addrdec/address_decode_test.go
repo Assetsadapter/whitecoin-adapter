@@ -28,6 +28,7 @@ func TestAddressDecoder_PubKeyEncode(t *testing.T) {
 	//XWCNenZ8kD5AHghHhYRB3PWTABZjGFHTVGG4C
 }
 
+
 func TestAddressDecoder_AddressDecode(t *testing.T) {
 
 	Default.IsTestNet = false

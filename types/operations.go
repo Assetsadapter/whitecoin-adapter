@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/Assetsadapter/whitecoin-adapter/encoding"
+	"github.com/blocktree/whitecoin-adapter/encoding"
 	"github.com/pkg/errors"
 )
 

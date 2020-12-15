@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
+	"github.com/blocktree/whitecoin-adapter/libs/config"
+	"github.com/blocktree/whitecoin-adapter/libs/util"
 	"github.com/denkhaus/logging"
 	"github.com/pquerna/ffjson/ffjson"
 

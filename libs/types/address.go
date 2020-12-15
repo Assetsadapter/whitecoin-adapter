@@ -5,8 +5,8 @@ import (
 	"crypto/sha512"
 	"fmt"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
+	"github.com/blocktree/whitecoin-adapter/libs/config"
+	"github.com/blocktree/whitecoin-adapter/libs/util"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/juju/errors"
 	"github.com/pquerna/ffjson/ffjson"

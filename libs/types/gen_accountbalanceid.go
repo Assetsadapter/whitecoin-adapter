@@ -7,7 +7,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
+	"github.com/blocktree/whitecoin-adapter/libs/util"
 	"github.com/denkhaus/logging"
 	"github.com/juju/errors"
 )

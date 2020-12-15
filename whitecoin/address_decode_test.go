@@ -19,7 +19,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/Assetsadapter/whitecoin-adapter/whitecoin_addrdec"
+	"github.com/blocktree/whitecoin-adapter/whitecoin_addrdec"
 )
 
 func TestAddressDecoder_AddressEncode(t *testing.T) {

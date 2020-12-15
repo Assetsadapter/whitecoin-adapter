@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
+	"github.com/blocktree/whitecoin-adapter/libs/util"
 	"github.com/denkhaus/logging"
 	"github.com/juju/errors"
 	"github.com/pquerna/ffjson/ffjson"

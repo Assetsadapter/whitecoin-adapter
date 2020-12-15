@@ -19,18 +19,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/operations"
-	whitecoin_txsigner "github.com/Assetsadapter/whitecoin-adapter/whitecoin-txsigner"
-	"github.com/blocktree/openwallet/log"
 	"time"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/crypto"
-	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
-	"github.com/Assetsadapter/whitecoin-adapter/types"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/whitecoin-adapter/libs/operations"
+
+	"github.com/blocktree/whitecoin-adapter/libs/config"
+	"github.com/blocktree/whitecoin-adapter/libs/crypto"
+	bt "github.com/blocktree/whitecoin-adapter/libs/types"
+	"github.com/blocktree/whitecoin-adapter/types"
 
 	owcrypt "github.com/blocktree/go-owcrypt"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/openwallet"
 	"github.com/shopspring/decimal"
 )
 
@@ -55,11 +55,15 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 		amountStr string
 		to        string
 		assetID   types.ObjectID
-		precise   int32
+		precise   uint64
 	)
 
-	assetID = types.MustParseObjectID("1.3.0")
-	precise = decoder.wm.Decimal()
+	if !rawTx.Coin.IsContract {
+		return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "only support contract")
+	}
+
+	assetID = types.MustParseObjectID(rawTx.Coin.Contract.Address)
+	precise = rawTx.Coin.Contract.Decimals
 
 	//获取wallet
 	addresses, err := wrapper.GetAddressList(0, -1, "AccountID", accountID) //wrapper.GetWallet().GetAddressesByAccount(rawTx.Account.AccountID)
@@ -78,14 +82,16 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 	}
 
 	for _, addr := range addresses {
-		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address)
+		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address, assetID)
 		if err != nil {
 			return err
 		}
 
 		accountBalanceDec, _ := decimal.NewFromString(balance.Amount)
 		amountDec, _ := decimal.NewFromString(amountStr)
-		amountDec = amountDec.Shift(precise)
+		amountDec = amountDec.Shift(int32(precise))
+
+		//memo := rawTx.GetExtParam().Get("memo").String()
 
 		asset := bt.AssetIDFromObject(bt.NewAssetID(assetID.String()))
 		amount := bt.AssetAmount{
@@ -124,6 +130,25 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 		if err := ops.ApplyFees(fees); err != nil {
 			return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "ApplyFees")
 		}
+
+		//fromPublicKey, _ := bt.NewPublicKeyFromString(fromAccount.Options.MemoKey)
+		//toPublicKey, _ := bt.NewPublicKeyFromString(toAccount.Options.MemoKey)
+
+		//if memo != "" {
+		//	m := bt.Memo{
+		//		From:  *fromPublicKey,
+		//		To:    *toPublicKey,
+		//		Nonce: bt.UInt64(rand.Uint64()),
+		//	}
+		//	keyBag := crypto.NewKeyBag()
+		//	keyBag.Add(decoder.wm.Config.MemoPrivateKey)
+		//
+		//	if err := keyBag.EncryptMemo(&m, memo); err != nil {
+		//		return fmt.Errorf("EncryptMemo: %v", err)
+		//	}
+		//
+		//	op.Memo = &m
+		//}
 
 		createTxErr := decoder.createRawTransaction(
 			wrapper,
@@ -174,8 +199,8 @@ func (decoder *TransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 
 			//decoder.wm.Log.Debug("hash:", hash)
 
-			signature, v, sigErr := whitecoin_txsigner.Signer(keyBytes, hash)
-			if sigErr != nil {
+			signature, v, sigErr := owcrypt.Signature(keyBytes, nil, hash, decoder.wm.CurveType())
+			if sigErr == owcrypt.FAILURE {
 				return fmt.Errorf("sign transaction hash failed")
 			}
 			signature = append(signature, v)
@@ -322,20 +347,21 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransaction(wrapper openwalle
 }
 
 //CreateSummaryRawTransactionWithError 创建汇总交易
-func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(
-	wrapper openwallet.WalletDAI,
-	sumRawTx *openwallet.SummaryRawTransaction,
-) ([]*openwallet.RawTransactionWithError, error) {
+func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper openwallet.WalletDAI, sumRawTx *openwallet.SummaryRawTransaction) ([]*openwallet.RawTransactionWithError, error) {
 
 	var (
 		rawTxArray = make([]*openwallet.RawTransactionWithError, 0)
 		accountID  = sumRawTx.Account.AccountID
 		assetID    types.ObjectID
-		precise    int32
+		precise    uint64
 	)
 
-	assetID = types.MustParseObjectID("1.3.0")
-	precise = decoder.wm.Decimal()
+	if !sumRawTx.Coin.IsContract {
+		return nil, openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "only support contract")
+	}
+
+	assetID = types.MustParseObjectID(sumRawTx.Coin.Contract.Address)
+	precise = sumRawTx.Coin.Contract.Decimals
 
 	minTransfer, _ := decimal.NewFromString(sumRawTx.MinTransfer)
 	retainedBalance, _ := decimal.NewFromString(sumRawTx.RetainedBalance)
@@ -345,7 +371,7 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(
 	}
 
 	//获取wallet
-	addresses, err := wrapper.GetAddressList(0, -1, "AccountID", accountID) //wrapper.GetWallet().GetAddressesByAccount(rawTx.Account.AccountID)
+	addresses, err := wrapper.GetAddressList(sumRawTx.AddressStartIndex, sumRawTx.AddressLimit, "AccountID", accountID) //wrapper.GetWallet().GetAddressesByAccount(rawTx.Account.AccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +381,7 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(
 	}
 
 	for _, addr := range addresses {
-		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address)
+		balance, err := decoder.wm.Api.GetAddrBalance(addr.Address, assetID)
 		if err != nil {
 			return nil, err
 		}
@@ -426,6 +452,25 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(
 			Required: 1,
 		}
 
+		//fromPublicKey, _ := bt.NewPublicKeyFromString(fromAccount.Options.MemoKey)
+		//toPublicKey, _ := bt.NewPublicKeyFromString(toAccount.Options.MemoKey)
+
+		//if memo != "" {
+		//	m := bt.Memo{
+		//		From:  *fromPublicKey,
+		//		To:    *toPublicKey,
+		//		Nonce: bt.UInt64(rand.Uint64()),
+		//	}
+		//	keyBag := crypto.NewKeyBag()
+		//	keyBag.Add(decoder.wm.Config.MemoPrivateKey)
+		//
+		//	if err := keyBag.EncryptMemo(&m, memo); err != nil {
+		//		return nil, fmt.Errorf("EncryptMemo: %v", err)
+		//	}
+		//
+		//	op.Memo = &m
+		//}
+
 		createTxErr := decoder.createRawTransaction(
 			wrapper,
 			rawTx,
@@ -462,7 +507,9 @@ func (decoder *TransactionDecoder) createRawTransaction(
 		keySignList      = make([]*openwallet.KeySignature, 0)
 		amountDec        = decimal.Zero
 		curveType        = decoder.wm.Config.CurveType
-		operations       = ops
+		//assetID          = bt.NewAssetID(rawTx.Coin.Contract.Address)
+		//precise          = rawTx.Coin.Contract.Decimals
+		operations = ops
 	)
 
 	for k, v := range rawTx.To {
@@ -479,10 +526,14 @@ func (decoder *TransactionDecoder) createRawTransaction(
 	j, _ := json.Marshal(info.HeadBlockID)
 	headBlockID := bt.String{}
 	headBlockID.UnmarshalJSON(j)
+	t := bt.Time{}
+	t.FromTime(info.Timestamp)
+
 	props := &bt.DynamicGlobalProperties{
 		HeadBlockID:              headBlockID,
 		HeadBlockNumber:          bt.UInt32(info.HeadBlockNum),
 		LastIrreversibleBlockNum: bt.UInt32(info.LastIrreversibleBlockNum),
+		Time:                     t,
 	}
 
 	tx, err := bt.NewSignedTransactionWithBlockData(props)
@@ -506,6 +557,7 @@ func (decoder *TransactionDecoder) createRawTransaction(
 		Nonce:   "",
 		Address: from,
 		Message: hex.EncodeToString(digest),
+		RSV:     true,
 	}
 	keySignList = append(keySignList, &signature)
 
@@ -524,8 +576,6 @@ func (decoder *TransactionDecoder) createRawTransaction(
 
 	feesDec := decimal.New(decoder.wm.Config.FixFees, 0)
 	feesDec = feesDec.Shift(-decoder.wm.Decimal())
-
-	accountTotalSent = accountTotalSent.Shift(-decoder.wm.Decimal())
 
 	jsonTx, _ := tx.MarshalJSON()
 	rawTx.RawHex = hex.EncodeToString(jsonTx)

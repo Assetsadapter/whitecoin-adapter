@@ -5,8 +5,8 @@ package operations
 import (
 	"strconv"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/types"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
+	"github.com/blocktree/whitecoin-adapter/libs/types"
+	"github.com/blocktree/whitecoin-adapter/libs/util"
 	"github.com/juju/errors"
 )
 

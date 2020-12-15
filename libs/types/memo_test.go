@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
+	"github.com/blocktree/whitecoin-adapter/libs/config"
 	"github.com/stretchr/testify/assert"
 )
 

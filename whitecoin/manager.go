@@ -17,10 +17,10 @@ package whitecoin
 
 import (
 	"fmt"
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openwallet"
-	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
-	"github.com/Assetsadapter/whitecoin-adapter/whitecoin_addrdec"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openwallet"
+	bt "github.com/blocktree/whitecoin-adapter/libs/types"
+	"github.com/blocktree/whitecoin-adapter/whitecoin_addrdec"
 )
 
 type WalletManager struct {
@@ -47,7 +47,6 @@ func NewWalletManager() *WalletManager {
 	wm.Log = log.NewOWLogger(wm.Symbol())
 	return &wm
 }
-
 
 func (wm *WalletManager) GetRequiredFee(ops []bt.Operation, assetID string) ([]bt.AssetAmount, error) {
 	resp := make([]bt.AssetAmount, 0)

@@ -20,11 +20,10 @@ import (
 	"strings"
 
 	"github.com/blocktree/go-owcrypt"
-	"github.com/blocktree/openwallet/common/file"
+	"github.com/blocktree/openwallet/v2/common/file"
 )
 
 const (
-	Decimal   = 8
 	CurveType = owcrypt.ECC_CURVE_SECP256K1
 )
 
@@ -34,6 +33,7 @@ var (
 )
 
 type WalletConfig struct {
+
 	//币种
 	Symbol string
 	//配置文件路径
@@ -44,10 +44,8 @@ type WalletConfig struct {
 	BlockchainFile string
 	//本地数据库文件路径
 	dbPath string
-	// 节点服务API
+	//钱包服务API
 	ServerAPI string
-	// 钱包服务PAI
-	WalletAPI string
 	//默认配置内容
 	DefaultConfig string
 	//曲线类型
@@ -58,8 +56,6 @@ type WalletConfig struct {
 	ChainID string
 	//Fix XWC Required Fee
 	FixFees int64
-	// Amount decimal
-	Decimal int32
 }
 
 func NewConfig(symbol string) *WalletConfig {

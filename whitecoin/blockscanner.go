@@ -16,11 +16,11 @@
 package whitecoin
 
 import (
-	"errors"
 	"fmt"
-	"github.com/Assetsadapter/whitecoin-adapter/types"
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/common"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openwallet"
+	"github.com/blocktree/whitecoin-adapter/types"
 	"math/big"
 	"time"
 )
@@ -134,22 +134,17 @@ func (bs *XWCBlockScanner) ScanBlockTask() {
 			break
 		}
 
-		if block == nil {
-			bs.wm.Log.Std.Error("block scanner get new block is nil")
-			break
-		}
-
 		if currentHash != block.Previous {
-			previousHeight := currentHeight - 1
 			bs.wm.Log.Std.Info("block has been fork on height: %d.", currentHeight)
 			bs.wm.Log.Std.Info("block height: %d local hash = %s ", currentHeight-1, currentHash)
 			bs.wm.Log.Std.Info("block height: %d mainnet hash = %s ", currentHeight-1, block.Previous)
+			bs.wm.Log.Std.Info("delete recharge records on block height: %d.", currentHeight-1)
 
 			// get local fork bolck
-			forkBlock, _ := bs.GetLocalBlock(previousHeight)
+			forkBlock, _ := bs.GetLocalBlock(currentHeight - 1)
 			// delete last unscan block
-			bs.DeleteUnscanRecord(previousHeight)
-			currentHeight = previousHeight - 1 // scan back to last 2 block
+			bs.DeleteUnscanRecord(currentHeight - 1)
+			currentHeight = currentHeight - 2 // scan back to last 2 block
 			if currentHeight <= 0 {
 				currentHeight = 1
 			}
@@ -347,6 +342,18 @@ func (bs *XWCBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 		if transferOperation, ok := operation.(*types.TransferOperation); ok {
 
+			//txID := transaction.TransactionID
+			//if len(txID) == 0 {
+			//	txID, err := bs.wm.Api.GetTransactionID(transaction)
+			//	bs.wm.Log.Std.Debug("tx: %v", txID)
+			//
+			//	if err != nil || len(txID) == 0 {
+			//		bs.wm.Log.Std.Error("cannot get txid, block: %v %s \n%v", blockHeight, transaction.Signatures, err)
+			//		return ExtractResult{Success: false}
+			//	}
+			//}
+			//result.TxID = txID
+
 			if scanTargetFunc == nil {
 				bs.wm.Log.Std.Error("scanTargetFunc is not configurated")
 				return ExtractResult{Success: false}
@@ -392,20 +399,21 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 	reason := ""
 
 	token := operation.Amount.AssetID.String()
+	amount := common.NewString(operation.Amount.Amount).String()
 
 	contractID := openwallet.GenContractID(bs.wm.Symbol(), token)
 	coin := openwallet.Coin{
 		Symbol:     bs.wm.Symbol(),
-		IsContract: false,
+		IsContract: true,
 		ContractID: contractID,
 	}
 
-	//coin.Contract = openwallet.SmartContract{
-	//	Symbol:     bs.wm.Symbol(),
-	//	ContractID: contractID,
-	//	Address:    token,
-	//	Token:      token,
-	//}
+	coin.Contract = openwallet.SmartContract{
+		Symbol:     bs.wm.Symbol(),
+		ContractID: contractID,
+		Address:    token,
+		Token:      token,
+	}
 
 	from := operation.FromAddr
 	to := operation.ToAddr
@@ -416,16 +424,18 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 		BlockHash:   result.BlockHash,
 		BlockHeight: result.BlockHeight,
 		TxID:        result.TxID,
-		Decimal:     bs.wm.Decimal(),
-		Amount:      operation.Amount.AmountFloat.String(),
+		// Decimal:     0,
+		Amount:      amount,
 		ConfirmTime: result.BlockTime,
-		From:        []string{from + ":" + operation.Amount.AmountFloat.String()},
-		To:          []string{to + ":" + operation.Amount.AmountFloat.String()},
+		From:        []string{from + ":" + amount},
+		To:          []string{to + ":" + amount},
 		IsMemo:      true,
 		Status:      status,
 		Reason:      reason,
 		TxType:      0,
 	}
+
+	//transx.SetExtParam("memo", operation.Memo)
 
 	wxID := openwallet.GenTransactionWxID(transx)
 	transx.WxID = wxID
@@ -441,6 +451,8 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 	}
 
 	txExtractDataArray = append(txExtractDataArray, txExtractData)
+
+	fee := common.NewString(operation.Fee.Amount).String()
 	feeToken := operation.Fee.AssetID.String()
 
 	if operation.Fee.AssetID != operation.Amount.AssetID && optType != 2 {
@@ -465,10 +477,10 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 			BlockHash:   result.BlockHash,
 			BlockHeight: result.BlockHeight,
 			TxID:        result.TxID,
-			Decimal:     bs.wm.Decimal(),
-			Amount:      operation.Fee.AmountFloat.String(),
+			// Decimal:     0,
+			Amount:      fee,
 			ConfirmTime: result.BlockTime,
-			From:        []string{from + ":" + operation.Fee.AmountFloat.String()},
+			From:        []string{from + ":" + fee},
 			IsMemo:      true,
 			Status:      status,
 			Reason:      reason,
@@ -483,7 +495,7 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 
 		txExtractDataArray = append(txExtractDataArray, feeExtractData)
 	} else if operation.Fee.AssetID == operation.Amount.AssetID {
-		transx.Fees = operation.Fee.AmountFloat.String()
+		transx.Fees = fee
 	}
 
 	result.extractData[sourceKey] = txExtractDataArray
@@ -672,73 +684,11 @@ func (bs *XWCBlockScanner) GetScannedBlockHeight() uint64 {
 }
 
 //GetBalanceByAddress 查询地址余额
-func (this *XWCBlockScanner) GetBalanceByAddress(address ...string) ([]*openwallet.Balance, error) {
-	type addressBalance struct {
-		Address string
-		Index   uint64
-		Balance *openwallet.Balance
-	}
+func (bs *XWCBlockScanner) GetBalanceByAddress(address ...string) ([]*openwallet.Balance, error) {
 
-	threadControl := make(chan int, 20)
-	defer close(threadControl)
-	resultChan := make(chan *addressBalance, 1024)
-	defer close(resultChan)
-	done := make(chan int, 1)
-	count := len(address)
-	resultBalance := make([]*openwallet.Balance, count)
-	resultSaveFailed := false
-	//save result
-	go func() {
-		for i := 0; i < count; i++ {
-			addr := <-resultChan
-			if addr.Balance != nil {
-				resultBalance[addr.Index] = addr.Balance
-			} else {
-				resultSaveFailed = true
-			}
-		}
-		done <- 1
-	}()
+	addrBalanceArr := make([]*openwallet.Balance, 0)
 
-	query := func(addr *addressBalance) {
-		threadControl <- 1
-		defer func() {
-			resultChan <- addr
-			<-threadControl
-		}()
-
-		b, err := this.wm.Api.GetAddrBalance(addr.Address)
-		if err != nil {
-			this.wm.Log.Error("get address[", addr.Address, "] balance failed, err=", err)
-			return
-		}
-
-		balance := &openwallet.Balance{
-			Symbol:  this.wm.Symbol(),
-			Address: addr.Address,
-		}
-
-		amount, _ := ConvertAmountToFloatDecimal(b.Amount, Decimal)
-
-		balance.Balance = amount.String()
-		balance.UnconfirmBalance = "0"
-		balance.ConfirmBalance = "0"
-		addr.Balance = balance
-	}
-
-	for i, _ := range address {
-		addrbl := &addressBalance{
-			Address: address[i],
-			Index:   uint64(i),
-		}
-		go query(addrbl)
-	}
-
-	<-done
-	if resultSaveFailed {
-		return nil, errors.New("get balance of addresses failed.")
-	}
-	return resultBalance, nil
+	return addrBalanceArr, nil
 }
 
 func (bs *XWCBlockScanner) GetCurrentBlockHeader() (*openwallet.BlockHeader, error) {

@@ -7,8 +7,8 @@ import (
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil/base58"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
+	"github.com/blocktree/whitecoin-adapter/libs/config"
+	"github.com/blocktree/whitecoin-adapter/libs/util"
 	sort "github.com/emirpasic/gods/utils"
 	"github.com/juju/errors"
 	"github.com/pquerna/ffjson/ffjson"

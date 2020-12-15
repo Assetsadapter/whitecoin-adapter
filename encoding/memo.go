@@ -3,8 +3,8 @@ package encoding
 import (
 	"fmt"
 
-	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/types"
+	"github.com/blocktree/whitecoin-adapter/libs/config"
+	"github.com/blocktree/whitecoin-adapter/libs/types"
 )
 
 //Decrypt calculates a shared secret by the receivers private key

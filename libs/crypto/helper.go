@@ -1,8 +1,8 @@
 package crypto
 
 import (
-	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
-	"github.com/Assetsadapter/whitecoin-adapter/libs/types"
+	"github.com/blocktree/whitecoin-adapter/libs/config"
+	"github.com/blocktree/whitecoin-adapter/libs/types"
 	"github.com/juju/errors"
 )
 

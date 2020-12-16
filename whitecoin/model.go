@@ -25,8 +25,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/blocktree/openwallet/v2/openwallet"
-	"github.com/blocktree/whitecoin-adapter/encoding"
-	"github.com/blocktree/whitecoin-adapter/types"
+	"github.com/Assetsadapter/whitecoin-adapter/encoding"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 	"github.com/tidwall/gjson"
 )
 

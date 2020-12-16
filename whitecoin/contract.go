@@ -17,7 +17,7 @@ package whitecoin
 
 import (
 	"github.com/blocktree/openwallet/v2/openwallet"
-	"github.com/blocktree/whitecoin-adapter/types"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 	"github.com/shopspring/decimal"
 )
 

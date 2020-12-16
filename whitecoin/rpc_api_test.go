@@ -1,7 +1,7 @@
 package whitecoin
 
 import (
-	"github.com/blocktree/whitecoin-adapter/types"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 	"testing"
 
 	"github.com/blocktree/openwallet/v2/log"

@@ -2,7 +2,7 @@
 
 ## 项目依赖库
 
-- [openwallet](https://github.com/blocktree/openwallet.git)
+- [openwallet](https://github.com/Assetsadapter/openwallet.git)
 
 ## 如何测试
 

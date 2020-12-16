@@ -20,7 +20,7 @@ import (
 	"github.com/blocktree/openwallet/v2/common"
 	"github.com/blocktree/openwallet/v2/log"
 	"github.com/blocktree/openwallet/v2/openwallet"
-	"github.com/blocktree/whitecoin-adapter/types"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 	"math/big"
 	"time"
 )
@@ -342,18 +342,6 @@ func (bs *XWCBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 		if transferOperation, ok := operation.(*types.TransferOperation); ok {
 
-			//txID := transaction.TransactionID
-			//if len(txID) == 0 {
-			//	txID, err := bs.wm.Api.GetTransactionID(transaction)
-			//	bs.wm.Log.Std.Debug("tx: %v", txID)
-			//
-			//	if err != nil || len(txID) == 0 {
-			//		bs.wm.Log.Std.Error("cannot get txid, block: %v %s \n%v", blockHeight, transaction.Signatures, err)
-			//		return ExtractResult{Success: false}
-			//	}
-			//}
-			//result.TxID = txID
-
 			if scanTargetFunc == nil {
 				bs.wm.Log.Std.Error("scanTargetFunc is not configurated")
 				return ExtractResult{Success: false}
@@ -399,21 +387,22 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 	reason := ""
 
 	token := operation.Amount.AssetID.String()
-	amount := common.NewString(operation.Amount.Amount).String()
+	amountFloat, _ := ConvertToFloat(common.NewString(operation.Amount.Amount).String())
+	amount := amountFloat.String()
 
 	contractID := openwallet.GenContractID(bs.wm.Symbol(), token)
 	coin := openwallet.Coin{
 		Symbol:     bs.wm.Symbol(),
-		IsContract: true,
+		IsContract: false,
 		ContractID: contractID,
 	}
 
-	coin.Contract = openwallet.SmartContract{
-		Symbol:     bs.wm.Symbol(),
-		ContractID: contractID,
-		Address:    token,
-		Token:      token,
-	}
+	//coin.Contract = openwallet.SmartContract{
+	//	Symbol:     bs.wm.Symbol(),
+	//	ContractID: contractID,
+	//	Address:    token,
+	//	Token:      token,
+	//}
 
 	from := operation.FromAddr
 	to := operation.ToAddr
@@ -452,7 +441,8 @@ func (bs *XWCBlockScanner) InitExtractResult(sourceKey string, operation *types.
 
 	txExtractDataArray = append(txExtractDataArray, txExtractData)
 
-	fee := common.NewString(operation.Fee.Amount).String()
+	feeDecimal, _ := ConvertToFloat(common.NewString(operation.Fee.Amount).String())
+	fee := feeDecimal.String()
 	feeToken := operation.Fee.AssetID.String()
 
 	if operation.Fee.AssetID != operation.Amount.AssetID && optType != 2 {
@@ -685,8 +675,20 @@ func (bs *XWCBlockScanner) GetScannedBlockHeight() uint64 {
 
 //GetBalanceByAddress 查询地址余额
 func (bs *XWCBlockScanner) GetBalanceByAddress(address ...string) ([]*openwallet.Balance, error) {
-
-	addrBalanceArr := make([]*openwallet.Balance, 0)
+	balance, err := bs.wm.Api.GetAddrBalance(address[0], types.MustParseObjectID("1.3.0"))
+	if err != nil {
+		return nil, err
+	}
+	amountDecimal, _ := ConvertToFloat(balance.Amount)
+	amount := amountDecimal.String()
+	addrBalanceArr := []*openwallet.Balance{}
+	addrBalanceArr = append(addrBalanceArr, &openwallet.Balance{
+		Symbol: bs.wm.Symbol(),
+		AccountID: amount,
+		ConfirmBalance: amount,
+		UnconfirmBalance: "0",
+		Balance: amount,
+	})
 
 	return addrBalanceArr, nil
 }

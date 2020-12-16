@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/blocktree/whitecoin-adapter/libs/util"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
 	"github.com/juju/errors"
 	"github.com/pquerna/ffjson/ffjson"
 )

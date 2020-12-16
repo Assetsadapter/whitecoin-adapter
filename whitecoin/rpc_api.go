@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/blocktree/whitecoin-adapter/types"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"github.com/blocktree/openwallet/v2/log"
-	bt "github.com/blocktree/whitecoin-adapter/libs/types"
+	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
 	"github.com/imroc/req"
 	"github.com/tidwall/gjson"
 )

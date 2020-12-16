@@ -22,12 +22,12 @@ import (
 	"time"
 
 	"github.com/blocktree/openwallet/v2/log"
-	"github.com/blocktree/whitecoin-adapter/libs/operations"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/operations"
 
-	"github.com/blocktree/whitecoin-adapter/libs/config"
-	"github.com/blocktree/whitecoin-adapter/libs/crypto"
-	bt "github.com/blocktree/whitecoin-adapter/libs/types"
-	"github.com/blocktree/whitecoin-adapter/types"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/crypto"
+	bt "github.com/Assetsadapter/whitecoin-adapter/libs/types"
+	"github.com/Assetsadapter/whitecoin-adapter/types"
 
 	owcrypt "github.com/blocktree/go-owcrypt"
 	"github.com/blocktree/openwallet/v2/openwallet"
@@ -57,6 +57,19 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 		assetID   types.ObjectID
 		precise   uint64
 	)
+
+	token := "1.3.0"
+	contractId := openwallet.GenContractID(decoder.wm.Symbol(), token)
+
+	rawTx.Coin.IsContract = true
+	rawTx.Coin.ContractID = contractId
+	rawTx.Coin.Contract = openwallet.SmartContract{
+		Symbol: decoder.wm.Symbol(),
+		ContractID: contractId,
+		Address: token,
+		Token: token,
+		Decimals: DECIMAL_COUNT,
+	}
 
 	if !rawTx.Coin.IsContract {
 		return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "only support contract")
@@ -333,6 +346,7 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransaction(wrapper openwalle
 		rawTxArray        = make([]*openwallet.RawTransaction, 0)
 		err               error
 	)
+
 	rawTxWithErrArray, err = decoder.CreateSummaryRawTransactionWithError(wrapper, sumRawTx)
 	if err != nil {
 		return nil, err
@@ -355,6 +369,19 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 		assetID    types.ObjectID
 		precise    uint64
 	)
+
+	token := "1.3.0"
+	contractId := openwallet.GenContractID(decoder.wm.Symbol(), token)
+
+	sumRawTx.Coin.IsContract = true
+	sumRawTx.Coin.ContractID = contractId
+	sumRawTx.Coin.Contract = openwallet.SmartContract{
+		Symbol: decoder.wm.Symbol(),
+		ContractID: contractId,
+		Address: token,
+		Token: token,
+		Decimals: DECIMAL_COUNT,
+	}
 
 	if !sumRawTx.Coin.IsContract {
 		return nil, openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "only support contract")
@@ -577,13 +604,16 @@ func (decoder *TransactionDecoder) createRawTransaction(
 	feesDec := decimal.New(decoder.wm.Config.FixFees, 0)
 	feesDec = feesDec.Shift(-decoder.wm.Decimal())
 
+	sentAmountDec, _ := ConvertToFloat(accountTotalSent.String())
+	sumAmount := sentAmountDec.String()
+
 	jsonTx, _ := tx.MarshalJSON()
 	rawTx.RawHex = hex.EncodeToString(jsonTx)
 	rawTx.Signatures[rawTx.Account.AccountID] = keySignList
 	rawTx.FeeRate = feesDec.String()
 	rawTx.Fees = feesDec.String()
 	rawTx.IsBuilt = true
-	rawTx.TxAmount = accountTotalSent.String()
+	rawTx.TxAmount = sumAmount
 	rawTx.TxFrom = txFrom
 	rawTx.TxTo = txTo
 

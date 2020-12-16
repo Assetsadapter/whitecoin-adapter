@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/blocktree/whitecoin-adapter/libs/util"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
 	"github.com/denkhaus/logging"
 	sort "github.com/emirpasic/gods/utils"
 	"github.com/juju/errors"

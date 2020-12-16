@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/blocktree/whitecoin-adapter/libs/config"
-	"github.com/blocktree/whitecoin-adapter/libs/util"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/config"
+	"github.com/Assetsadapter/whitecoin-adapter/libs/util"
 	"github.com/stretchr/testify/assert"
 )
 

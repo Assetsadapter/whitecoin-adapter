@@ -16,11 +16,17 @@
 package whitecoin
 
 import (
+	"fmt"
+	"math/big"
+
+	xwc "github.com/Assetsadapter/whitecoin-adapter/libs/config"
 	"github.com/astaxie/beego/config"
 	"github.com/blocktree/openwallet/v2/log"
 	"github.com/blocktree/openwallet/v2/openwallet"
-	xwc "github.com/blocktree/whitecoin-adapter/libs/config"
+	"github.com/shopspring/decimal"
 )
+
+const DECIMAL_COUNT = 8
 
 //CurveType 曲线类型
 func (wm *WalletManager) CurveType() uint32 {
@@ -39,7 +45,7 @@ func (wm *WalletManager) Symbol() string {
 
 //Decimal 小数位精度
 func (wm *WalletManager) Decimal() int32 {
-	return 8
+	return DECIMAL_COUNT
 }
 
 //BalanceModelType 余额模型类型
@@ -106,4 +112,45 @@ func (wm *WalletManager) GetSmartContractDecoder() openwallet.SmartContractDecod
 //如果实现了AddressDecoderV2，就无需实现AddressDecoder
 func (wm *WalletManager) GetAddressDecoderV2() openwallet.AddressDecoderV2 {
 	return wm.DecoderV2
+}
+
+// 从区块链中的值转换为系统内显示的小数值
+func ConvertToFloat(amount string) (decimal.Decimal, error) {
+	return ConvertAmountToFloat(amount, DECIMAL_COUNT)
+}
+
+func ConvertAmountToFloat(amount string, decimals int) (decimal.Decimal, error) {
+	d, err := decimal.NewFromString(amount)
+	if err != nil {
+		log.Errorf("convert string to decimal failed, err = %v", err)
+		return d, err
+	}
+
+	dAmount := d.Shift(-int32(decimals))
+	return dAmount, nil
+}
+
+// 从系统内的小数值转换为区块链中的整数值
+func ConvertToDecimal(amount string) (*big.Int, error) {
+	return ConvertFloatStringToBigInt(amount, DECIMAL_COUNT)
+}
+
+func ConvertFloatStringToBigInt(amount string, decimals int) (*big.Int, error) {
+	vDecimal, _ := decimal.NewFromString(amount)
+	if decimals < 0 || decimals > 30 {
+		return nil, fmt.Errorf("wrong decimal input through")
+	}
+
+	decimalInt := big.NewInt(1)
+	for i := 0; i < decimals; i ++ {
+		decimalInt.Mul(decimalInt,big.NewInt(10))
+	}
+	d, _ := decimal.NewFromString(decimalInt.String())
+	vDecimal = vDecimal.Mul(d)
+	rst:= new(big.Int)
+	if _, valid := rst.SetString(vDecimal.String(), 10); !valid {
+		log.Error("convert to big.int failed")
+		return nil, fmt.Errorf("convert to big.int failed")
+	}
+	return rst, nil
 }
